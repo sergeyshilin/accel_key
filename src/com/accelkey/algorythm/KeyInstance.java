@@ -30,10 +30,29 @@ public class KeyInstance extends LinkedList<Position> {
         if (type == Sensor.TYPE_MAGNETIC_FIELD)
             magnetData = event.values.clone();
 
-        sm.getRotationMatrix(rotationMatrix, null, accelData,
+        SensorManager.getRotationMatrix(rotationMatrix, null, accelData,
                 magnetData);
-        sm.getOrientation(rotationMatrix, orientationData);
+        SensorManager.getOrientation(rotationMatrix, orientationData);
 
+        Position current = new Position(orientationData);
+        boolean piRotation = (
+                this.size() != 0 && this.getLast().moreThan(current, 90)
+                || this.size() == 0)
+                ? true : false;
 
+        if(piRotation) {
+//            Position p = (this.size() == 0) ? current : new Position(getDelta(orientationData));
+            this.add(current);
+        }
+
+    }
+
+    private Position getDelta(float[] orientationData) {
+        Position last = getLast();
+        Position current = new Position(orientationData);
+        long xy = current.getXy() - last.getXy();
+        long xz = current.getXz() - last.getXz();
+        long yz = current.getYz() - last.getYz();
+        return new Position(xy, xz, yz);
     }
 }

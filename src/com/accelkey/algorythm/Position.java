@@ -6,14 +6,29 @@ public class Position {
 	private long yz;
 
 	public Position(float xy, float xz, float yz) {
-		this.xy = (Math.round(Math.toDegrees(xy)/90)*90);
-		this.xz = (Math.round(Math.toDegrees(xz)/90)*90);
-		this.yz = (Math.round(Math.toDegrees(yz)/90)*90);
+		this.xy = (Math.round(Math.toDegrees(xy)));
+		this.xz = (Math.round(Math.toDegrees(xz)));
+		this.yz = (Math.round(Math.toDegrees(yz)));
+	}
+
+	public Position(long _xy, long _xz, long _yz) {
+		this.xy = _xy;
+		this.xz = _xz;
+		this.yz = _yz;
+
+	}
+
+	public  Position(Position p) {
+		this.xy = p.getXy();
+		this.xz = p.getXz();
+		this.yz = p.getYz();
 	}
 
 	public Position(float[] orientation) {
 		if(orientation.length >= 3) {
-			new Position(orientation[0], orientation[1], orientation[2]);
+			this.xy = (Math.round(Math.toDegrees(orientation[0])));
+			this.xz = (Math.round(Math.toDegrees(orientation[1])));
+			this.yz = (Math.round(Math.toDegrees(orientation[2])));
 		}
 	}
 
@@ -50,10 +65,20 @@ public class Position {
 			return true;
 		else return false;
 	}
-	
 
-	
-	
-	
+	public boolean moreThan(Position position, int degree) {
+		if (Math.abs(this.getXy() - position.getXy()) > degree
+                || Math.abs(this.getXz() - position.getXz()) > degree
+                || Math.abs(this.getYz() - position.getYz()) > degree)
+			return true;
+		return false;
+	}
 
+	public void print() {
+		System.out.println("");
+		System.out.println("xy: " + getXy());
+		System.out.println("xz: " + getXz());
+		System.out.println("yz: " + getYz());
+		System.out.println("");
+	}
 }

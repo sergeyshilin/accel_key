@@ -16,7 +16,6 @@ public class StateListener implements SensorEventListener {
     private KeyInstance originKey;
     private KeyInstance testKey;
     private int state = 0;
-    private int check = 0;
 
     private Activity activity;
 
@@ -45,61 +44,13 @@ public class StateListener implements SensorEventListener {
 
         if(state == 1) {
             originKey.loadNewSensorData(event);
-        } else if (state == 2) {
-            testKey.loadNewSensorData(event);
-        } else {
-
         }
-
-
-//        Position last;
-//        if (state == 1){
-//            if (originKey.isEmpty()) {
-//                originKey.add(nowposition);
-//                return;
-//            }
-//            last = originKey.getLast();
-//        }else{
-//            if (testKey.isEmpty()) {
-//                last = new Position (1000, 1000, 1000);
-//            }else{
-//                last = testKey.getLast();
-//            }
-//        }
-//        if (Math.abs(Math.toDegrees(orientationData[0]) - last.getXy()) < 90
-//                && Math.abs(Math.toDegrees(orientationData[1]) - last.getXz()) < 90
-//                && Math.abs(Math.toDegrees(orientationData[2]) - last.getYz()) < 90)
-//            return;
-//
-//        if (state == 1)
-//            originKey.add(nowposition);
-//        else {
-//            if (check == 0) {
-//                if (originKey.getFirst().equals(nowposition)){
-//                    testKey.add(nowposition);
-//                    check = 1;
-//                }
-//            }else {
-//                if (originKey.get(check).equals(nowposition)){
-//                    check++;
-//                    testKey.add(nowposition);
-//                    if (originKey.size() == check) {
-//                        state = 3;
-//                        stopWritin();
-//                    }
-//                }
-//                else{
-//                    check = 0;
-//                    testKey.clear();
-//                }
-//            }
+//        else if (state == 2) {
+//            testKey.loadNewSensorData(event);
 //        }
 
-        TextView t1 =(TextView) activity.findViewById(R.id.xyValue);
+        TextView t1 = (TextView) activity.findViewById(R.id.xyValue);
         t1.setText(String.valueOf(state));
-
-        TextView t2 = (TextView) activity.findViewById(R.id.xzValue);
-        t2.setText(String.valueOf(check));
     }
 
     @Override
@@ -109,5 +60,16 @@ public class StateListener implements SensorEventListener {
 
     public void setState(int state) {
         this.state = state;
+    }
+
+    public void printKey() {
+        System.out.println("Size of key is: " + originKey.size());
+        for(Position pos : originKey) {
+            pos.print();
+        }
+    }
+
+    public KeyInstance getOriginKey() {
+        return originKey;
     }
 }
