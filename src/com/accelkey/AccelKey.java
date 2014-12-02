@@ -25,12 +25,14 @@ public class AccelKey extends Activity {
         Button stop = (Button) findViewById(R.id.stop);
         switch (v.getId()) {
             case R.id.start:
-                sl.writeKey(1);
+                sl.setState(1);
+                sl.writeKey();
                 start.setVisibility(View.INVISIBLE);
                 stop.setVisibility(View.VISIBLE);
                 break;
             case R.id.stop:
-                sl.writeKey(2);
+                sl.setState(2);
+                sl.writeKey();
                 stop.setVisibility(View.INVISIBLE);
                 break;
         }
