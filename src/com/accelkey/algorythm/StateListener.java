@@ -6,9 +6,14 @@ import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
+import android.view.View;
+import android.widget.Button;
 import android.widget.TextView;
 import com.accelkey.AccelKey;
 import com.accelkey.R;
+
+import javax.xml.transform.Source;
+import java.security.Key;
 
 public class StateListener implements SensorEventListener {
     private SensorManager sensorManager;
@@ -26,8 +31,44 @@ public class StateListener implements SensorEventListener {
         testKey = new KeyInstance(sensorManager);
     }
 
+    public void listenStartButtonClicks(int click) {
+        Button start = (Button) activity.findViewById(R.id.start);
+        switch (click) {
+            case 1:
+                System.out.println("was click");
+                start.setText("Остановить");
+                originKey.clear();
+                setState(1);
+                writeKey();
+                break;
+            case 2:
+                System.out.println("was click");
+                start.setText("Повторить ввод");
+                stopWriting();
+                break;
+            case 3:
+                System.out.println("was click");
+                start.setText("Остановить");
+                testKey.clear();
+                setState(2);
+                writeKey();
+                break;
+            case 4:
+                System.out.println("was click");
+                stopWriting();
+                simplifyKeys();
+                printKeys();
+                break;
+        }
+    }
+
+    private void simplifyKeys() {
+        for(KeyInstance key : new KeyInstance[] {originKey, testKey}) {
+            key.simplify();
+        }
+    }
+
     public void writeKey() {
-        stopWriting();
         sensorManager.registerListener(this,
                 sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER),
                 SensorManager.SENSOR_DELAY_UI);
@@ -37,6 +78,11 @@ public class StateListener implements SensorEventListener {
     }
 
     public void stopWriting() {
+        if(originKey.getTimer() != null && originKey.isTimerStarted())
+            originKey.timerStop();
+        if(testKey.getTimer() != null && testKey.isTimerStarted())
+            testKey.timerStop();
+
         sensorManager.unregisterListener(this);
     }
 
@@ -44,13 +90,10 @@ public class StateListener implements SensorEventListener {
 
         if(state == 1) {
             originKey.loadNewSensorData(event);
+        } else if (state == 2) {
+            testKey.loadNewSensorData(event);
         }
-//        else if (state == 2) {
-//            testKey.loadNewSensorData(event);
-//        }
 
-        TextView t1 = (TextView) activity.findViewById(R.id.xyValue);
-        t1.setText(String.valueOf(state));
     }
 
     @Override
@@ -62,14 +105,23 @@ public class StateListener implements SensorEventListener {
         this.state = state;
     }
 
-    public void printKey() {
-        System.out.println("Size of key is: " + originKey.size());
-        for(Position pos : originKey) {
-            pos.print();
-        }
-    }
-
     public KeyInstance getOriginKey() {
         return originKey;
     }
+
+    public KeyInstance getTestKey() {
+        return testKey;
+    }
+
+    public void printKeys() {
+        for(KeyInstance key : new KeyInstance[]{originKey, testKey}) {
+            System.out.println("/* ----------------- Start key ----------------- */");
+            System.out.println("Size of key is: " + key.size());
+            for(Position pos : key) {
+                pos.print();
+            }
+            System.out.println("/* ----------------- End key ----------------- */");
+        }
+    }
+
 }

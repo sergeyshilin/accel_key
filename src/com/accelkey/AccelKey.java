@@ -9,6 +9,7 @@ import com.accelkey.algorythm.StateListener;
 public class AccelKey extends Activity {
 
     StateListener sl;
+    private static int click = 0;
 
     /** Called when the activity is first created. */
     @Override
@@ -17,28 +18,16 @@ public class AccelKey extends Activity {
         super.onCreate(savedInstanceState);
         sl = new StateListener(this);
         setContentView(R.layout.main);
+        Button button = (Button) findViewById(R.id.start);
+        button.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if(click == 4)
+                    click = 0;
+                sl.listenStartButtonClicks(++click);
+            }
+        });
 
-    }
-
-    public void onclick(View v) {
-        Button start = (Button) findViewById(R.id.start);
-        Button stop = (Button) findViewById(R.id.stop);
-        switch (v.getId()) {
-            case R.id.start:
-                sl.getOriginKey().clear();
-                sl.setState(1);
-                sl.writeKey();
-                start.setVisibility(View.INVISIBLE);
-                stop.setVisibility(View.VISIBLE);
-                break;
-            case R.id.stop:
-                sl.setState(2);
-                sl.stopWriting();
-                sl.printKey();
-                stop.setVisibility(View.INVISIBLE);
-                start.setVisibility(View.VISIBLE);
-                break;
-        }
     }
 
 }

@@ -4,6 +4,7 @@ public class Position {
 	private long xy;
 	private long xz;
 	private long yz;
+	private long[] coordinates;
 
 	public Position(float xy, float xz, float yz) {
 		this.xy = (Math.round(Math.toDegrees(xy)));
@@ -80,5 +81,20 @@ public class Position {
 		System.out.println("xz: " + getXz());
 		System.out.println("yz: " + getYz());
 		System.out.println("");
+	}
+
+	public boolean equals(Position position, double percent) {
+			long epsilonXy = (long) (xy * percent);
+			long epsilonXz = (long) (xz * percent);
+			long epsilonYz = (long) (yz * percent);
+		return true;
+	}
+
+	public long[] getCoordinates() {
+		long[] coordinates = new long[3];
+		coordinates[0] = xy;
+		coordinates[1] = xz;
+		coordinates[2] = yz;
+		return coordinates;
 	}
 }

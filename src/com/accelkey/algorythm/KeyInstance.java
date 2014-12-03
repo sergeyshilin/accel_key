@@ -4,7 +4,11 @@ import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorManager;
 
+import javax.xml.transform.Source;
+import java.security.Key;
 import java.util.LinkedList;
+import java.util.Timer;
+import java.util.TimerTask;
 
 
 public class KeyInstance extends LinkedList<Position> {
@@ -13,11 +17,23 @@ public class KeyInstance extends LinkedList<Position> {
     private float[] accelData = new float[3];
     private float[] magnetData = new float[3];
     private float[] orientationData = new float[3];
+    private Timer timer;
+    private boolean isTimerStarted = false;
+    private KeyInstance me;
 
     private SensorManager sm;
+    private boolean timerStarted;
 
     public KeyInstance(SensorManager _sm) {
+
         this.sm = _sm;
+        this.timer = new Timer();
+        this.me = this;
+    }
+
+    public void timerStop(){
+        this.timer.cancel();
+        isTimerStarted = !isTimerStarted;
     }
 
     void loadNewSensorData(SensorEvent event) {
@@ -35,24 +51,35 @@ public class KeyInstance extends LinkedList<Position> {
         SensorManager.getOrientation(rotationMatrix, orientationData);
 
         Position current = new Position(orientationData);
-        boolean piRotation = (
-                this.size() != 0 && this.getLast().moreThan(current, 90)
-                || this.size() == 0)
-                ? true : false;
 
-        if(piRotation) {
-//            Position p = (this.size() == 0) ? current : new Position(getDelta(orientationData));
-            this.add(current);
-        }
+        timer.schedule(new TimerTask() {
+            @Override
+            public void run() {
+                isTimerStarted = !isTimerStarted;
+                me.add(new Position(orientationData));
+                try {
+                    Thread.sleep(1000);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
+        }, 20, 300);
 
     }
 
-    private Position getDelta(float[] orientationData) {
-        Position last = getLast();
-        Position current = new Position(orientationData);
-        long xy = current.getXy() - last.getXy();
-        long xz = current.getXz() - last.getXz();
-        long yz = current.getYz() - last.getYz();
-        return new Position(xy, xz, yz);
+    public Timer getTimer() {
+        return timer;
+    }
+
+    public boolean isTimerStarted() {
+        return timerStarted;
+    }
+
+    public void simplify() {
+        double similarityPercent = 0.95;
+        for(int i = this.size() - 1; i > 0; i--) {
+            if(this.get(i).equals(this.get(i-1), similarityPercent))
+                this.remove(i);
+        }
     }
 }
