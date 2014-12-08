@@ -1,5 +1,6 @@
 package com.accelkey.algorythm;
 
+import android.graphics.Point;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorManager;
@@ -31,6 +32,10 @@ public class KeyInstance extends LinkedList<Position> {
         this.me = this;
     }
 
+    public KeyInstance() {
+        super();
+    }
+
     public void timerStop(){
         this.timer.cancel();
         isTimerStarted = !isTimerStarted;
@@ -58,12 +63,12 @@ public class KeyInstance extends LinkedList<Position> {
                 isTimerStarted = !isTimerStarted;
                 me.add(new Position(orientationData));
                 try {
-                    Thread.sleep(1000);
+                    Thread.sleep(Utils.INTERVAL);
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
             }
-        }, 20, 300);
+        }, 20, Utils.INTERVAL);
 
     }
 
@@ -76,10 +81,29 @@ public class KeyInstance extends LinkedList<Position> {
     }
 
     public void simplify() {
-        double similarityPercent = 0.95;
+        double similarityPercent = 0.97;
         for(int i = this.size() - 1; i > 0; i--) {
             if(this.get(i).equals(this.get(i-1), similarityPercent))
                 this.remove(i);
         }
     }
+
+    public LinkedList<Integer> getDelta() {
+        LinkedList<Integer> delta = new LinkedList<>();
+
+        for(int i = 1; i < this.size(); i++) {
+            Integer area = Utils.getDeltaArea(this.get(i).minus(this.get(i - 1)));
+            if(!delta.isEmpty() && delta.getLast() != area || delta.isEmpty())
+                delta.add(area);
+        }
+
+        for(Position position : this) {
+            Integer area = Utils.getDeltaArea(position);
+            if(!delta.isEmpty() && delta.getLast() != area || delta.isEmpty())
+                delta.add(area);
+        }
+
+        return delta;
+    }
 }
+

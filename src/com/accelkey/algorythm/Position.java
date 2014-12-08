@@ -4,12 +4,11 @@ public class Position {
 	private long xy;
 	private long xz;
 	private long yz;
-	private long[] coordinates;
 
 	public Position(float xy, float xz, float yz) {
-		this.xy = (Math.round(Math.toDegrees(xy)));
-		this.xz = (Math.round(Math.toDegrees(xz)));
-		this.yz = (Math.round(Math.toDegrees(yz)));
+		this.xy = (Math.round(Math.toDegrees(xy))/10);
+		this.xz = (Math.round(Math.toDegrees(xz))/10);
+		this.yz = (Math.round(Math.toDegrees(yz))/10);
 	}
 
 	public Position(long _xy, long _xz, long _yz) {
@@ -27,9 +26,9 @@ public class Position {
 
 	public Position(float[] orientation) {
 		if(orientation.length >= 3) {
-			this.xy = (Math.round(Math.toDegrees(orientation[0])));
-			this.xz = (Math.round(Math.toDegrees(orientation[1])));
-			this.yz = (Math.round(Math.toDegrees(orientation[2])));
+			this.xy = (Math.round(Math.toDegrees(orientation[0]))/10);
+			this.xz = (Math.round(Math.toDegrees(orientation[1]))/10);
+			this.yz = (Math.round(Math.toDegrees(orientation[2]))/10);
 		}
 	}
 
@@ -84,17 +83,29 @@ public class Position {
 	}
 
 	public boolean equals(Position position, double percent) {
-			long epsilonXy = (long) (xy * percent);
-			long epsilonXz = (long) (xz * percent);
-			long epsilonYz = (long) (yz * percent);
-		return true;
+		double epsilon = (double) Utils.FULLDEGREE * (1-percent);
+		if(this.oneArea(position)
+				&& Utils.inEpsilon(this.getXy(), position.getXy(), epsilon)
+				&& Utils.inEpsilon(this.getXz(), position.getXz(), epsilon)
+				&& Utils.inEpsilon(this.getYz(), position.getYz(), epsilon)
+		)
+			return true;
+		return false;
 	}
 
-	public long[] getCoordinates() {
-		long[] coordinates = new long[3];
-		coordinates[0] = xy;
-		coordinates[1] = xz;
-		coordinates[2] = yz;
-		return coordinates;
+	private boolean oneArea(Position position) {
+		if(this.getXy() * position.getXy() >= 0
+				&& this.getXz() * position.getXz() >= 0
+				&& this.getYz() * position.getYz() >= 0)
+			return true;
+		return false;
+	}
+
+	public Position minus(Position position) {
+		long a = this.getXy() - position.getXy();
+		long b = this.getXz() - position.getXz();
+		long c = this.getYz() - position.getYz();
+
+		return new Position(a, b, c);
 	}
 }

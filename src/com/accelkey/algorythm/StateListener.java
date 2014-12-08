@@ -14,12 +14,15 @@ import com.accelkey.R;
 
 import javax.xml.transform.Source;
 import java.security.Key;
+import java.util.LinkedList;
 
 public class StateListener implements SensorEventListener {
     private SensorManager sensorManager;
 
     private KeyInstance originKey;
     private KeyInstance testKey;
+    private LinkedList<Integer> originDelta;
+    private LinkedList<Integer> testDelta;
     private int state = 0;
 
     private Activity activity;
@@ -57,9 +60,15 @@ public class StateListener implements SensorEventListener {
                 System.out.println("was click");
                 stopWriting();
                 simplifyKeys();
-                printKeys();
+                buildDelta();
+                printDelta();
                 break;
         }
+    }
+
+    private void buildDelta() {
+        originDelta = originKey.getDelta();
+        testDelta = testKey.getDelta();
     }
 
     private void simplifyKeys() {
@@ -121,6 +130,17 @@ public class StateListener implements SensorEventListener {
                 pos.print();
             }
             System.out.println("/* ----------------- End key ----------------- */");
+        }
+    }
+
+    public void printDelta() {
+        for(LinkedList<Integer> key : new LinkedList[]{originDelta, testDelta}) {
+            System.out.println("/* ----------------- START DELTA ----------------- */");
+            System.out.println("Size of delta is: " + key.size());
+            for(Integer area : key) {
+                System.out.print(area + "  ");
+            }
+            System.out.println("/* ----------------- END DELTA ----------------- */");
         }
     }
 
