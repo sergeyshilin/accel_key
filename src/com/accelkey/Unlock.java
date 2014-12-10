@@ -6,7 +6,7 @@ import android.view.View;
 import android.widget.Button;
 import com.accelkey.algorythm.StateListener;
 
-public class AccelKey extends Activity {
+public class Unlock extends Activity {
 
     StateListener sl;
     private static int click = 0;
@@ -17,14 +17,14 @@ public class AccelKey extends Activity {
 
         super.onCreate(savedInstanceState);
         sl = new StateListener(this);
-        setContentView(R.layout.main);
-        Button button = (Button) findViewById(R.id.start);
+        setContentView(R.layout.unlock);
+        Button button = (Button) findViewById(R.id.unlock);
         button.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if(click == 4)
+                if(click == 2)
                     click = 0;
-                sl.listenStartButtonClicks(++click);
+                sl.listenUnlockButtonClicks(++click);
             }
         });
 

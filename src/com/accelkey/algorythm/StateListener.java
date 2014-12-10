@@ -2,6 +2,7 @@ package com.accelkey.algorythm;
 
 import android.app.Activity;
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
@@ -9,11 +10,10 @@ import android.hardware.SensorManager;
 import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
-import com.accelkey.AccelKey;
+import com.accelkey.Unlock;
+import com.accelkey.UpdateKey;
 import com.accelkey.R;
 
-import javax.xml.transform.Source;
-import java.security.Key;
 import java.util.LinkedList;
 
 public class StateListener implements SensorEventListener {
@@ -27,10 +27,16 @@ public class StateListener implements SensorEventListener {
 
     private Activity activity;
 
-    public StateListener(AccelKey accelKey) {
+    public StateListener(UpdateKey accelKey) {
         activity = accelKey;
         sensorManager = (SensorManager) accelKey.getSystemService(Context.SENSOR_SERVICE);
         originKey = new KeyInstance(sensorManager);
+        testKey = new KeyInstance(sensorManager);
+    }
+
+    public StateListener(Unlock unlock) {
+        activity = unlock;
+        originKey = null;
         testKey = new KeyInstance(sensorManager);
     }
 
@@ -38,42 +44,112 @@ public class StateListener implements SensorEventListener {
         Button start = (Button) activity.findViewById(R.id.start);
         switch (click) {
             case 1:
-                System.out.println("was click");
                 start.setText("Остановить");
                 originKey.clear();
                 setState(1);
                 writeKey();
                 break;
             case 2:
-                System.out.println("was click");
                 start.setText("Повторить ввод");
                 stopWriting();
                 break;
             case 3:
-                System.out.println("was click");
                 start.setText("Остановить");
                 testKey.clear();
                 setState(2);
                 writeKey();
                 break;
             case 4:
-                System.out.println("was click");
                 stopWriting();
-                simplifyKeys();
-                buildDelta();
-                printDelta();
+                processKeys();
                 break;
         }
     }
 
+    public void listenUnlockButtonClicks(int click) {
+        Button unlock = (Button) activity.findViewById(R.id.unlock);
+        switch (click) {
+            case 1:
+                unlock.setText("Остановить");
+                originKey.clear();
+                setState(2);
+                writeKey();
+                break;
+            case 2:
+                unlock.setVisibility(View.INVISIBLE);
+                stopWriting();
+                processKeys();
+                break;
+        }
+    }
+
+    private void processKeys() {
+        simplifyKeys();
+        buildDelta();
+        compareDeltas();
+    }
+
+    private void compareDeltas() {
+        if(originKey.isEmpty()) {
+            String originKey, testKey;
+            SharedPreferences sharedPref = this.activity.getPreferences(Context.MODE_PRIVATE);
+            originKey = sharedPref.getString("key", "SOMEWRONGDATA");
+
+            StringBuffer test = new StringBuffer();
+            for(Integer s : testDelta){
+                test.append(s.toString());
+                test.append(",");
+            }
+
+            if(test.toString().equals(originKey)) {
+                activity.finish();
+            } else {
+                ((TextView) activity.findViewById(R.id.info)).setText("Неверно. Попробуйте еще");
+                Button unlock = (Button) activity.findViewById(R.id.unlock);
+                unlock.setVisibility(View.VISIBLE);
+                unlock.setText("Ввести ключ");
+            }
+        } else {
+            if (originDelta.equals(testDelta)) {
+                System.out.println("EQUALS");
+                writeKeyToStorage();
+                Button close = (Button) activity.findViewById(R.id.start);
+                close.setText("Закрыть");
+                close.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        activity.finish();
+                    }
+                });
+
+                ((TextView) activity.findViewById(R.id.info)).setText("Ключ обновлен");
+            } else {
+                System.out.println("DIFFERENT");
+            }
+        }
+    }
+
+    private void writeKeyToStorage() {
+        StringBuilder csvList = new StringBuilder();
+        for(Integer s : originDelta){
+            csvList.append(s.toString());
+            csvList.append(",");
+        }
+
+        SharedPreferences sharedPref = this.activity.getPreferences(Context.MODE_PRIVATE);
+        SharedPreferences.Editor editor = sharedPref.edit();
+        editor.putString("key", csvList.toString());
+        editor.commit();
+    }
+
     private void buildDelta() {
-        originDelta = originKey.getDelta();
-        testDelta = testKey.getDelta();
+        if(!originKey.isEmpty()) originDelta = originKey.getDelta();
+        if(!testKey.isEmpty()) testDelta = testKey.getDelta();
     }
 
     private void simplifyKeys() {
         for(KeyInstance key : new KeyInstance[] {originKey, testKey}) {
-            key.simplify();
+            if(!key.isEmpty()) key.simplify();
         }
     }
 

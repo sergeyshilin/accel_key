@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+        android:orientation="vertical"
+        android:layout_width="fill_parent"
+        android:layout_height="fill_parent" xmlns:android="http://schemas.android.com/apk/res/android"
+        android:weightSum="1">
+    <FrameLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content" android:layout_gravity="center_horizontal"
+            android:layout_weight="0.74">
+        <TextView
+                android:layout_width="338dp"
+                android:layout_height="wrap_content"
+                android:textAppearance="?android:attr/textAppearanceMedium"
+                android:text="Введите ключ для разблокировки"
+                android:id="@+id/info" android:layout_gravity="center" android:textAlignment="center"
+                android:singleLine="false" android:textSize="20dp" android:clickable="false" android:autoText="false"
+                android:soundEffectsEnabled="false"/>
+    </FrameLayout>
+    <Button
+            android:layout_width="176dp"
+            android:layout_height="66dp"
+            android:text="Ввести ключ"
+            android:id="@+id/unlock" android:layout_gravity="center_horizontal"/>
+</LinearLayout>

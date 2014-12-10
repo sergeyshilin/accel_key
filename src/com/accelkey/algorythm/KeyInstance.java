@@ -81,7 +81,7 @@ public class KeyInstance extends LinkedList<Position> {
     }
 
     public void simplify() {
-        double similarityPercent = 0.97;
+        double similarityPercent = 0.90;
         for(int i = this.size() - 1; i > 0; i--) {
             if(this.get(i).equals(this.get(i-1), similarityPercent))
                 this.remove(i);
@@ -91,15 +91,9 @@ public class KeyInstance extends LinkedList<Position> {
     public LinkedList<Integer> getDelta() {
         LinkedList<Integer> delta = new LinkedList<>();
 
-        for(int i = 1; i < this.size(); i++) {
-            Integer area = Utils.getDeltaArea(this.get(i).minus(this.get(i - 1)));
-            if(!delta.isEmpty() && delta.getLast() != area || delta.isEmpty())
-                delta.add(area);
-        }
-
         for(Position position : this) {
             Integer area = Utils.getDeltaArea(position);
-            if(!delta.isEmpty() && delta.getLast() != area || delta.isEmpty())
+            if(!delta.isEmpty() && !delta.getLast().equals(area) || delta.isEmpty())
                 delta.add(area);
         }
 
