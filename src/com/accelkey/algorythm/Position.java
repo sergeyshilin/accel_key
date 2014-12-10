@@ -6,9 +6,9 @@ public class Position {
 	private long yz;
 
 	public Position(float xy, float xz, float yz) {
-		this.xy = (Math.round(Math.toDegrees(xy))/10);
-		this.xz = (Math.round(Math.toDegrees(xz))/10);
-		this.yz = (Math.round(Math.toDegrees(yz))/10);
+		this.xy = (Math.round(Math.toDegrees(xy)));
+		this.xz = (Math.round(Math.toDegrees(xz)));
+		this.yz = (Math.round(Math.toDegrees(yz)));
 	}
 
 	public Position(long _xy, long _xz, long _yz) {
@@ -26,9 +26,9 @@ public class Position {
 
 	public Position(float[] orientation) {
 		if(orientation.length >= 3) {
-			this.xy = (Math.round(Math.toDegrees(orientation[0]))/10);
-			this.xz = (Math.round(Math.toDegrees(orientation[1]))/10);
-			this.yz = (Math.round(Math.toDegrees(orientation[2]))/10);
+			this.xy = (Math.round(Math.toDegrees(orientation[0])));
+			this.xz = (Math.round(Math.toDegrees(orientation[1])));
+			this.yz = (Math.round(Math.toDegrees(orientation[2])));
 		}
 	}
 
