@@ -1,7 +1,9 @@
 package com.accelkey.algorythm;
 
 import android.app.Activity;
+import android.app.KeyguardManager;
 import android.content.Context;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
@@ -14,6 +16,10 @@ import com.accelkey.Unlock;
 import com.accelkey.UpdateKey;
 import com.accelkey.R;
 
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.util.LinkedList;
 
 public class StateListener implements SensorEventListener {
@@ -24,6 +30,8 @@ public class StateListener implements SensorEventListener {
     private LinkedList<Integer> originDelta;
     private LinkedList<Integer> testDelta;
     private int state = 0;
+
+    private String origin = "";
 
     private Activity activity;
 
@@ -36,8 +44,42 @@ public class StateListener implements SensorEventListener {
 
     public StateListener(Unlock unlock) {
         activity = unlock;
+        KeyguardManager keyguardManager = (KeyguardManager) activity.getApplicationContext().getSystemService(Activity.KEYGUARD_SERVICE);
+        KeyguardManager.KeyguardLock lock = keyguardManager.newKeyguardLock(Activity.KEYGUARD_SERVICE);
+        lock.disableKeyguard();
+
+        origin = readKeyFromStorage();
+
+        System.out.println(origin);
+        if(origin.isEmpty())
+            activity.startActivity(new Intent(activity, UpdateKey.class));
+
+        sensorManager = (SensorManager) unlock.getSystemService(Context.SENSOR_SERVICE);
         originKey = null;
         testKey = new KeyInstance(sensorManager);
+    }
+
+    private String readKeyFromStorage() {
+        String key = "";
+        FileInputStream fis = null;
+        try {
+            fis = activity.getApplicationContext().openFileInput(Utils.KEYFILE);
+            StringBuffer fileContent = new StringBuffer("");
+            byte[] buffer = new byte[1024];
+            int n;
+            while ((n = fis.read(buffer)) != -1)
+            {
+                fileContent.append(new String(buffer, 0, n));
+            }
+            fis.close();
+            key = fileContent.toString();
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        return key;
     }
 
     public void listenStartButtonClicks(int click) {
@@ -71,7 +113,9 @@ public class StateListener implements SensorEventListener {
         switch (click) {
             case 1:
                 unlock.setText("Остановить");
-                originKey.clear();
+                testKey.clear();
+
+
                 setState(2);
                 writeKey();
                 break;
@@ -90,18 +134,18 @@ public class StateListener implements SensorEventListener {
     }
 
     private void compareDeltas() {
-        if(originKey.isEmpty()) {
-            String originKey, testKey;
-            SharedPreferences sharedPref = this.activity.getPreferences(Context.MODE_PRIVATE);
-            originKey = sharedPref.getString("key", "SOMEWRONGDATA");
+        if(originKey == null) {
+            String test;
 
-            StringBuffer test = new StringBuffer();
+            StringBuffer testsb = new StringBuffer();
             for(Integer s : testDelta){
-                test.append(s.toString());
-                test.append(",");
+                testsb.append(s.toString());
+                testsb.append(",");
             }
 
-            if(test.toString().equals(originKey)) {
+            System.out.println(testsb.toString());
+            System.out.println(origin);
+            if(testsb.toString().equals(origin)) {
                 activity.finish();
             } else {
                 ((TextView) activity.findViewById(R.id.info)).setText("Неверно. Попробуйте еще");
@@ -112,7 +156,11 @@ public class StateListener implements SensorEventListener {
         } else {
             if (originDelta.equals(testDelta)) {
                 System.out.println("EQUALS");
-                writeKeyToStorage();
+                try {
+                    writeKeyToStorage();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
                 Button close = (Button) activity.findViewById(R.id.start);
                 close.setText("Закрыть");
                 close.setOnClickListener(new View.OnClickListener() {
@@ -129,27 +177,31 @@ public class StateListener implements SensorEventListener {
         }
     }
 
-    private void writeKeyToStorage() {
+    private void writeKeyToStorage() throws IOException {
         StringBuilder csvList = new StringBuilder();
         for(Integer s : originDelta){
             csvList.append(s.toString());
             csvList.append(",");
         }
 
-        SharedPreferences sharedPref = this.activity.getPreferences(Context.MODE_PRIVATE);
-        SharedPreferences.Editor editor = sharedPref.edit();
-        editor.putString("key", csvList.toString());
-        editor.commit();
+        System.out.println(csvList.toString());
+        FileOutputStream fos = activity.getApplicationContext().openFileOutput(Utils.KEYFILE, Context.MODE_PRIVATE);
+        fos.write(csvList.toString().getBytes());
+        fos.close();
+//        SharedPreferences sharedPref = this.activity.getApplicationContext().getSharedPreferences("PRIVATE_KEY", Context.MODE_PRIVATE);
+//        SharedPreferences.Editor editor = sharedPref.edit();
+//        editor.putString("key", csvList.toString());
+//        editor.commit();
     }
 
     private void buildDelta() {
-        if(!originKey.isEmpty()) originDelta = originKey.getDelta();
+        if(originKey != null) originDelta = originKey.getDelta();
         if(!testKey.isEmpty()) testDelta = testKey.getDelta();
     }
 
     private void simplifyKeys() {
         for(KeyInstance key : new KeyInstance[] {originKey, testKey}) {
-            if(!key.isEmpty()) key.simplify();
+            if(key != null) key.simplify();
         }
     }
 
@@ -163,7 +215,7 @@ public class StateListener implements SensorEventListener {
     }
 
     public void stopWriting() {
-        if(originKey.getTimer() != null && originKey.isTimerStarted())
+        if(originKey != null && originKey.getTimer() != null && originKey.isTimerStarted())
             originKey.timerStop();
         if(testKey.getTimer() != null && testKey.isTimerStarted())
             testKey.timerStop();

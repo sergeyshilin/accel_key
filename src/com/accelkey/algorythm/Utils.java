@@ -1,6 +1,7 @@
 package com.accelkey.algorythm;
 
 public class Utils {
+    public static final String KEYFILE = "KEYFILE";
     public static final int FULLDEGREE = 180;
     public static final int TEN = 20;    // first was TEN = 10
     public static final int OHS = 160;   // first was One Hundred Seventy = 170
