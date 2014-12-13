@@ -1,10 +1,13 @@
 package com.accelkey.algorythm;
 
 import android.app.Activity;
+import android.app.Application;
 import android.app.KeyguardManager;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.pm.ApplicationInfo;
+import android.content.pm.PackageManager;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
@@ -15,12 +18,11 @@ import android.widget.TextView;
 import com.accelkey.Unlock;
 import com.accelkey.UpdateKey;
 import com.accelkey.R;
+import org.w3c.dom.Text;
 
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.IOException;
+import java.io.*;
 import java.util.LinkedList;
+import java.util.List;
 
 public class StateListener implements SensorEventListener {
     private SensorManager sensorManager;
@@ -44,10 +46,6 @@ public class StateListener implements SensorEventListener {
 
     public StateListener(Unlock unlock) {
         activity = unlock;
-        KeyguardManager keyguardManager = (KeyguardManager) activity.getApplicationContext().getSystemService(Activity.KEYGUARD_SERVICE);
-        KeyguardManager.KeyguardLock lock = keyguardManager.newKeyguardLock(Activity.KEYGUARD_SERVICE);
-        lock.disableKeyguard();
-
         origin = readKeyFromStorage();
 
         System.out.println(origin);
@@ -114,13 +112,10 @@ public class StateListener implements SensorEventListener {
             case 1:
                 unlock.setText("Остановить");
                 testKey.clear();
-
-
                 setState(2);
                 writeKey();
                 break;
             case 2:
-                unlock.setVisibility(View.INVISIBLE);
                 stopWriting();
                 processKeys();
                 break;
@@ -146,7 +141,26 @@ public class StateListener implements SensorEventListener {
             System.out.println(testsb.toString());
             System.out.println(origin);
             if(testsb.toString().equals(origin)) {
-                activity.finish();
+                Button unlock = (Button) activity.findViewById(R.id.unlock);
+                TextView change = (TextView) activity.findViewById(R.id.changekey);
+                ((TextView) activity.findViewById(R.id.info)).setText("Ключ введен успешно");
+                change.setVisibility(View.VISIBLE);
+                unlock.setText("Закрыть");
+                unlock.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        activity.finish();
+//                        openMainWindowApp();
+                    }
+                });
+
+                change.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        activity.startActivity(new Intent(activity, UpdateKey.class));
+                    }
+                });
+
             } else {
                 ((TextView) activity.findViewById(R.id.info)).setText("Неверно. Попробуйте еще");
                 Button unlock = (Button) activity.findViewById(R.id.unlock);
@@ -155,7 +169,6 @@ public class StateListener implements SensorEventListener {
             }
         } else {
             if (originDelta.equals(testDelta)) {
-                System.out.println("EQUALS");
                 try {
                     writeKeyToStorage();
                 } catch (IOException e) {
@@ -172,8 +185,24 @@ public class StateListener implements SensorEventListener {
 
                 ((TextView) activity.findViewById(R.id.info)).setText("Ключ обновлен");
             } else {
-                System.out.println("DIFFERENT");
+                Button close = (Button) activity.findViewById(R.id.start);
+                close.setText("Ввести ключ");
             }
+        }
+    }
+
+    private void openMainWindowApp() {
+        Intent i;
+        PackageManager manager = activity.getPackageManager();
+        try {
+            i = manager.getLaunchIntentForPackage("com.sec.android.app.myfiles");
+            if (i == null)
+                throw new PackageManager.NameNotFoundException();
+            i.addCategory(Intent.CATEGORY_LAUNCHER);
+            activity.startActivity(i);
+            System.exit(0);
+        } catch (PackageManager.NameNotFoundException e) {
+
         }
     }
 
@@ -188,10 +217,6 @@ public class StateListener implements SensorEventListener {
         FileOutputStream fos = activity.getApplicationContext().openFileOutput(Utils.KEYFILE, Context.MODE_PRIVATE);
         fos.write(csvList.toString().getBytes());
         fos.close();
-//        SharedPreferences sharedPref = this.activity.getApplicationContext().getSharedPreferences("PRIVATE_KEY", Context.MODE_PRIVATE);
-//        SharedPreferences.Editor editor = sharedPref.edit();
-//        editor.putString("key", csvList.toString());
-//        editor.commit();
     }
 
     private void buildDelta() {

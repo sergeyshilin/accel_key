@@ -22,4 +22,12 @@
             android:layout_height="66dp"
             android:text="Ввести ключ"
             android:id="@+id/unlock" android:layout_gravity="center_horizontal"/>
+        <TextView
+                android:layout_width="141dp"
+                android:layout_height="32dp"
+                android:textAppearance="?android:attr/textAppearanceSmall"
+                android:text="Изменить ключ"
+                android:id="@+id/changekey" android:layout_gravity="right" android:layout_marginTop="50dp"
+                android:textSize="17dp"
+                android:textColor="#ffcc00" android:visibility="invisible"/>
 </LinearLayout>

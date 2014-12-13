@@ -30,4 +30,23 @@ public class UpdateKey extends Activity {
 
     }
 
+    @Override
+    protected void onStart() {
+        super.onStart();
+        UIHelper.checkJustLaunced();
+    }
+
+    @Override
+    public void finish() {
+        UIHelper.homeKeyPressed = false;
+        super.finish();
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+        UIHelper.checkHomeKeyPressed(true);
+    }
+
+
 }
